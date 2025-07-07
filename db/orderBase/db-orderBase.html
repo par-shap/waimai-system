@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据库管理系统 - 管理订单</title>
+  <link rel="stylesheet" href="../db-db-admin.css">
+  <link rel="stylesheet" href="db-orderBase.css">
+</head>
+<body>
+  <div class="db-admin-layout">
+    <aside class="db-sidebar">
+      <div class="db-sidebar-title">数据库管理</div>
+      <a href="../db-home.html" class="db-sidebar-link">主页</a>
+      <a href="../db-dataBase.html" class="db-sidebar-link">管理商家</a>
+      <a href="../db-user.html" class="db-sidebar-link">管理用户</a>
+      <a href="db-orderBase.html" class="db-sidebar-link active">管理订单</a>
+      <a href="../db-rider.html" class="db-sidebar-link">管理骑手</a>
+    </aside>
+    <main class="db-main-content">
+      <h1>订单检测窗口</h1>
+      <div class="db-card">
+        <div id="orderList"></div>
+      </div>
+    </main>
+  </div>
+  <script src="../db-database.js"></script>
+  <script src="db-orderBase.js"></script>
+</body>
+</html> 

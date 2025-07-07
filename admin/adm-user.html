@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据库管理系统 - 管理用户</title>
+  <link rel="stylesheet" href="adm-admin.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar">
+      <div class="sidebar-title">数据库管理</div>
+      <a href="adm-home.html" class="sidebar-link">主页</a>
+      <a href="adm-merchant.html" class="sidebar-link">管理商家</a>
+      <a href="adm-user.html" class="sidebar-link active">管理用户</a>
+      <a href="adm-order.html" class="sidebar-link">管理订单</a>
+      <a href="adm-rider.html" class="sidebar-link">管理骑手</a>
+    </aside>
+    <main class="main-content">
+      <h1>用户管理</h1>
+      <div class="card">这里是用户管理功能区（可扩展）</div>
+    </main>
+  </div>
+  <script src="../db/db-database.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', async function() {
+      const main = document.querySelector('.main-content');
+      // 创建用户表格
+      const table = document.createElement('table');
+      table.style = "width:100%;margin-top:20px;border-collapse:collapse;";
+      table.innerHTML = `
+        <tr>
+          <th style="border:1px solid #ccc;padding:8px;">用户ID</th>
+          <th style="border:1px solid #ccc;padding:8px;">昵称</th>
+          <th style="border:1px solid #ccc;padding:8px;">头像</th>
+          <th style="border:1px solid #ccc;padding:8px;">密码</th>
+          <th style="border:1px solid #ccc;padding:8px;">操作</th>
+        </tr>
+      `;
+      // 获取所有用户
+      const users = await window.db.getAllUsers();
+      if (users && users.length > 0) {
+        users.forEach(user => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="border:1px solid #ccc;padding:8px;">${user.id}</td>
+            <td style="border:1px solid #ccc;padding:8px;">${user.nickname}</td>
+            <td style="border:1px solid #ccc;padding:8px;"><img src="${user.avatar}" style="width:40px;height:40px;border-radius:50%;"></td>
+            <td style="border:1px solid #ccc;padding:8px;">${user.password}</td>
+            <td style="border:1px solid #ccc;padding:8px;"><button class="delete-user-btn" data-id="${user.id}" style="color:#fff;background:#e53e3e;border:none;padding:4px 12px;border-radius:4px;cursor:pointer;">删除</button></td>
+          `;
+          table.appendChild(tr);
+        });
+      } else {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5" style="text-align:center;padding:20px;">暂无用户数据</td>`;
+        table.appendChild(tr);
+      }
+      main.appendChild(table);
+      // 绑定删除事件
+      table.addEventListener('click', async function(e) {
+        if (e.target.classList.contains('delete-user-btn')) {
+          const id = e.target.getAttribute('data-id');
+          if (confirm(`确认要删除用户ID：${id} 吗？`)) {
+            await window.db.deleteUser(id);
+            alert('删除成功');
+            location.reload();
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html> 

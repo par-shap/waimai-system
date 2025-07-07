@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据库管理系统 - 管理骑手</title>
+  <link rel="stylesheet" href="db-db-admin.css">
+</head>
+<body>
+  <div class="db-admin-layout">
+    <aside class="db-sidebar">
+      <div class="db-sidebar-title">数据库管理</div>
+      <a href="db-home.html" class="db-sidebar-link">主页</a>
+      <a href="db-dataBase.html" class="db-sidebar-link">管理商家</a>
+      <a href="db-user.html" class="db-sidebar-link">管理用户</a>
+      <a href="orderBase/db-orderBase.html" class="db-sidebar-link">管理订单</a>
+      <a href="db-rider.html" class="db-sidebar-link active">管理骑手</a>
+    </aside>
+    <main class="db-main-content">
+      <h1>骑手管理</h1>
+      <div class="db-card">
+        <h2 style="font-size:1.1rem;font-weight:bold;margin-bottom:16px;">骑手状态窗口</h2>
+        <div id="riderListTable"></div>
+      </div>
+    </main>
+  </div>
+  <style>
+    .rider-table { width: 100%; border-collapse: collapse; min-width: 520px; }
+    .rider-table th { background: #f1f5f9; color: #232946; font-weight: bold; padding: 10px 8px; border-bottom: 2px solid #e5e7eb; }
+    .rider-table td { background: #fff; padding: 10px 8px; border-bottom: 1px solid #f1f5f9; text-align: center; }
+    .rider-table tr:last-child td { border-bottom: none; }
+    .rider-btn { margin: 2px 4px; padding: 4px 14px; border-radius: 5px; border: none; font-size: 0.97rem; cursor: pointer; transition: background 0.18s; }
+    .rider-btn.edit { background: #2563eb; color: #fff; }
+    .rider-btn.edit:hover { background: #1d4ed8; }
+    .rider-btn.delete { background: #ef4444; color: #fff; }
+    .rider-btn.delete:hover { background: #b91c1c; }
+    .rider-empty { color: #b0b3b8; text-align: center; padding: 32px 0; font-size: 1.08rem; }
+  </style>
+  <script src="db-database.js"></script>
+  <script>
+    async function renderRiderTable() {
+      const riderListTable = document.getElementById('riderListTable');
+      if (!riderListTable) return;
+      
+      // 确保数据库已初始化
+      await window.db.init();
+      const allRiders = await window.db.getAllRiders();
+      const riders = allRiders.filter(r => r.status === 'online' || r.status === 'working');
+      if (!riders || riders.length === 0) {
+        riderListTable.innerHTML = '<div class="rider-empty">暂无已上线或工作中骑手</div>';
+        return;
+      }
+      riderListTable.innerHTML = `<table class="rider-table"><thead><tr><th>ID</th><th>姓名</th><th>电话</th><th>状态</th><th>当前订单</th><th>操作</th></tr></thead><tbody>${riders.map(r => `<tr><td>${r.id}</td><td>${r.name}</td><td>${r.phone||''}</td><td>${r.status==='working'?'工作中':(r.status==='online'?'已上线':'空闲')}</td><td>${r.currentOrderId||''}</td><td><button class='rider-btn edit' onclick='editRider(\"${r.id}\")'>编辑</button><button class='rider-btn delete' onclick='deleteRider(\"${r.id}\")'>删除</button></td></tr>`).join('')}</tbody></table>`;
+    }
+    document.addEventListener('DOMContentLoaded', async () => {
+      await renderRiderTable();
+      
+      // 定时刷新骑手状态，每5秒同步一次数据库
+      setInterval(async () => {
+        await renderRiderTable();
+      }, 5000);
+    });
+    
+    // 编辑/删除功能（可后续实现）
+    window.editRider = function(id){ alert('编辑功能可后续实现，当前点击骑手ID: '+id); };
+    window.deleteRider = async function(id){
+      if(!confirm('确定要删除该骑手吗？')) return;
+      if(window.db && window.db.deleteRider){
+        await window.db.deleteRider(id);
+        renderRiderTable();
+        alert('删除成功！');
+      }
+    };
+  </script>
+</body>
+</html> 

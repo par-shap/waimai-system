@@ -1,0 +1,69 @@
+.order-card {
+  border-radius: 18px;
+  border: 2px solid #bbb;
+  min-width: 260px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.order-map {
+  border: 2px solid #222;
+  border-radius: 8px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-top: 18px;
+  margin-bottom: 8px;
+  background: #fafafa;
+}
+.rider-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  width: 200px;
+  background: #fff;
+  border-right: 2px solid #eee;
+  z-index: 9999;
+  padding: 24px 12px 24px 12px;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+  overflow-y: auto;
+}
+.rider-sidebar h3 {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+.rider-item {
+  margin-bottom: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+.rider-phone, .rider-status {
+  font-size: 12px;
+  color: #888;
+}
+.main-content {
+  margin-left: 220px;
+}
+.rider-status-btn {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 16px;
+  border: none;
+  border-radius: 16px;
+  font-size: 13px;
+  color: #fff;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s;
+}
+.rider-online {
+  background: #22c55e;
+}
+.rider-offline {
+  background: #ef4444;
+}

@@ -1,0 +1,9 @@
+body { background: #f5f6fa; font-family: 'Microsoft YaHei', Arial, sans-serif; }
+.order-check-container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); padding: 32px; }
+.order-check-container h2 { font-size: 1.3rem; font-weight: bold; margin-bottom: 18px; }
+#orderList { margin-top: 18px; }
+#orderList table { border-collapse: collapse; width: 100%; background: #fff; }
+#orderList th, #orderList td { border: 1px solid #222; padding: 8px 12px; text-align: left; }
+#orderList th { background: #f3f4f6; }
+#orderList input[type="text"] { border-radius: 4px; outline: none; }
+#orderList button { border-radius: 4px; } 

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据库管理系统 - 管理用户</title>
+  <link rel="stylesheet" href="db-db-admin.css">
+  <style>
+    .user-card { border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); padding: 32px 24px 28px 24px; margin-bottom: 24px; }
+    .user-title { font-size: 1.13rem; font-weight: bold; margin-bottom: 18px; letter-spacing: 1px; }
+    .user-table-wrap { overflow-x: auto; background: #f7f8fa; border-radius: 8px; padding: 0; }
+    .user-table { width: 100%; border-collapse: collapse; min-width: 520px; }
+    .user-table th { background: #f1f5f9; color: #232946; font-weight: bold; padding: 10px 8px; border-bottom: 2px solid #e5e7eb; }
+    .user-table td { background: #fff; padding: 10px 8px; border-bottom: 1px solid #f1f5f9; text-align: center; }
+    .user-table tr:last-child td { border-bottom: none; }
+    .user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .user-empty { color: #b0b3b8; text-align: center; padding: 32px 0; font-size: 1.08rem; }
+    .user-btn { margin: 0 4px; padding: 4px 14px; border-radius: 5px; border: none; font-size: 0.97rem; cursor: pointer; transition: background 0.18s; }
+    .user-btn.edit { background: #2563eb; color: #fff; }
+    .user-btn.edit:hover { background: #1d4ed8; }
+    .user-btn.delete { background: #ef4444; color: #fff; }
+    .user-btn.delete:hover { background: #b91c1c; }
+    .user-edit-modal { display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:99;align-items:center;justify-content:center; }
+    .user-edit-modal .modal-content { background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.18);width:350px;max-width:96vw;padding:32px 28px 24px 28px;position:relative; }
+    .user-edit-modal .close-btn { position:absolute;right:18px;top:14px;font-size:1.3rem;background:none;border:none;cursor:pointer;color:#888; }
+    .user-edit-modal label { display:block;margin-bottom:6px;font-weight:bold;color:#232946; }
+    .user-edit-modal input { width:100%;margin-bottom:16px;padding:7px 10px;border-radius:5px;border:1px solid #d1d5db;font-size:1rem; }
+    .user-edit-modal .modal-actions { display:flex;justify-content:flex-end;gap:12px; }
+    .user-edit-modal .modal-btn { padding:6px 22px;border-radius:5px;border:none;font-size:1rem;cursor:pointer; }
+    .user-edit-modal .modal-btn.save { background:#2563eb;color:#fff; }
+    .user-edit-modal .modal-btn.save:hover { background:#1d4ed8; }
+    .user-edit-modal .modal-btn.cancel { background:#e5e7eb;color:#232946; }
+    .user-edit-modal .modal-btn.cancel:hover { background:#cbd5e1; }
+  </style>
+</head>
+<body>
+  <div class="db-admin-layout">
+    <aside class="db-sidebar">
+      <div class="db-sidebar-title">数据库管理</div>
+      <a href="db-home.html" class="db-sidebar-link">主页</a>
+      <a href="db-dataBase.html" class="db-sidebar-link">管理商家</a>
+      <a href="db-user.html" class="db-sidebar-link active">管理用户</a>
+      <a href="orderBase/db-orderBase.html" class="db-sidebar-link">管理订单</a>
+      <a href="db-rider.html" class="db-sidebar-link">管理骑手</a>
+    </aside>
+    <main class="db-main-content">
+      <h1>用户管理</h1>
+      <div class="db-card user-card">
+        <h2 class="user-title">检测小程序用户窗口</h2>
+        <div id="userListTable" class="user-table-wrap"></div>
+      </div>
+    </main>
+  </div>
+  <div id="userEditModal" class="user-edit-modal">
+    <div class="modal-content">
+      <button class="close-btn" id="closeUserEditModal">×</button>
+      <form id="userEditForm">
+        <label for="editUserId">ID</label>
+        <input id="editUserId" name="id" required />
+        <label for="editUserNickname">昵称</label>
+        <input id="editUserNickname" name="nickname" required />
+        <label for="editUserPassword">密码</label>
+        <input id="editUserPassword" name="password" required type="text" />
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" id="cancelUserEdit">取消</button>
+          <button type="submit" class="modal-btn save">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="db-database.js"></script>
+  <script>
+    async function renderUserCheckWindow() {
+      const userListTable = document.getElementById('userListTable');
+      if (!userListTable) return;
+      const users = await window.db.getAllUsers();
+      // 获取所有用户地址
+      const allAddresses = await window.db.getAllUserAddresses ? await window.db.getAllUserAddresses() : [await window.db.getUserAddress()];
+      if (!users || users.length === 0) {
+        userListTable.innerHTML = '<div class="user-empty">暂无注册用户</div>';
+        return;
+      }
+      userListTable.innerHTML = `<table class="user-table"><thead><tr><th>ID</th><th>昵称</th><th>头像</th><th>密码</th><th>用户收货地址</th><th>操作</th></tr></thead><tbody>${users.map(u => {
+        // 查找该用户的地址
+        let address = '';
+        if (allAddresses && Array.isArray(allAddresses)) {
+          const addr = allAddresses.find(a => a && a.userId == u.id);
+          address = addr ? (addr.address || '') : '';
+        }
+        return `<tr><td>${u.id}</td><td>${u.nickname}</td><td><img src="${u.avatar}" class="user-avatar" /></td><td>${u.password}</td><td>${address}</td><td><button class='user-btn edit' onclick='editUser("${u.id}")'>编辑</button><button class='user-btn delete' onclick='deleteUser("${u.id}")'>删除</button></td></tr>`;
+      }).join('')}</tbody></table>`;
+    }
+    document.addEventListener('DOMContentLoaded', renderUserCheckWindow);
+
+    // 编辑用户弹窗
+    let currentEditUserId = null;
+    window.editUser = async function(id) {
+      const users = await window.db.getAllUsers();
+      const user = users.find(u=>u.id==id);
+      if(!user) return;
+      currentEditUserId = id;
+      document.getElementById('editUserId').value = user.id;
+      document.getElementById('editUserNickname').value = user.nickname;
+      document.getElementById('editUserPassword').value = user.password;
+      document.getElementById('userEditModal').style.display = 'flex';
+    };
+    document.getElementById('closeUserEditModal').onclick = function() {
+      document.getElementById('userEditModal').style.display = 'none';
+    };
+    document.getElementById('cancelUserEdit').onclick = function() {
+      document.getElementById('userEditModal').style.display = 'none';
+    };
+    document.getElementById('userEditModal').onclick = function(e) {
+      if(e.target===this) this.style.display='none';
+    };
+    document.getElementById('userEditForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const id = document.getElementById('editUserId').value.trim();
+      const nickname = document.getElementById('editUserNickname').value.trim();
+      const password = document.getElementById('editUserPassword').value.trim();
+      if(!id||!nickname||!password) return alert('请填写完整信息');
+      // 先获取原用户信息，保留头像
+      const users = await window.db.getAllUsers();
+      const oldUser = users.find(u=>u.id==currentEditUserId);
+      if(!oldUser) return;
+      const newUser = { ...oldUser, id, nickname, password };
+      await window.db.addUser(newUser); // 直接覆盖
+      if(id!==currentEditUserId) await window.db.deleteUser(currentEditUserId);
+      document.getElementById('userEditModal').style.display = 'none';
+      renderUserCheckWindow();
+      alert('保存成功！');
+    };
+    // 删除用户
+    window.deleteUser = async function(id) {
+      if(!confirm('确定要删除该用户吗？')) return;
+      await window.db.deleteUser(id);
+      renderUserCheckWindow();
+      alert('删除成功！');
+    };
+  </script>
+</body>
+</html> 

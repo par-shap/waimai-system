@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据库管理系统 - 管理商家</title>
+  <link rel="stylesheet" href="db-db-admin.css">
+  <style>
+    .merchant-row { display:flex;align-items:center;justify-content:space-between;padding:16px 12px;margin-bottom:12px;background:#f7f8fa;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);transition:box-shadow 0.2s; }
+    .merchant-row:hover { box-shadow:0 4px 16px rgba(34,99,235,0.08); }
+    .merchant-info { display:flex;flex-direction:column; }
+    .merchant-name { font-weight:bold;font-size:1.08rem;margin-bottom:2px; }
+    .merchant-meta { color:#64748b;font-size:0.97rem; }
+    .merchant-status { margin-left:8px;padding:2px 12px;border-radius:12px;font-size:0.92rem;font-weight:bold; }
+    .merchant-status.active { background:#d1fae5;color:#059669; }
+    .merchant-status.inactive { background:#fee2e2;color:#b91c1c; }
+    .merchant-actions { display:flex;gap:8px;margin-left:18px; }
+    .merchant-btn { padding:4px 16px;border-radius:5px;border:none;font-size:0.98rem;cursor:pointer;transition:background 0.18s; }
+    .merchant-btn.edit { background:#2563eb;color:#fff; }
+    .merchant-btn.edit:hover { background:#1d4ed8; }
+    .merchant-btn.delete { background:#ef4444;color:#fff; }
+    .merchant-btn.delete:hover { background:#b91c1c; }
+    .merchant-empty { color:#b0b3b8;text-align:center;padding:32px 0;font-size:1.08rem; }
+    .menu-row { display:flex;align-items:flex-start;justify-content:space-between;padding:14px 8px;margin-bottom:8px;background:#f7f8fa;border-radius:7px; }
+    .menu-info { display:flex;flex-direction:column; }
+    .menu-name { font-weight:bold;font-size:1.05rem;margin-bottom:2px; }
+    .menu-desc { color:#64748b;font-size:0.97rem; }
+    .menu-meta { text-align:right; }
+    .menu-price { color:#16a34a;font-weight:bold;font-size:1.1rem; }
+    .menu-id { color:#15803d;font-size:0.95rem;margin-top:2px; }
+  </style>
+</head>
+<body>
+  <div class="db-admin-layout">
+    <aside class="db-sidebar">
+      <div class="db-sidebar-title">数据库管理</div>
+      <a href="db-home.html" class="db-sidebar-link">主页</a>
+      <a href="db-dataBase.html" class="db-sidebar-link active">管理商家</a>
+      <a href="db-user.html" class="db-sidebar-link">管理用户</a>
+      <a href="orderBase/db-orderBase.html" class="db-sidebar-link">管理订单</a>
+      <a href="db-rider.html" class="db-sidebar-link">管理骑手</a>
+    </aside>
+    <main class="db-main-content">
+      <h1 style="margin-bottom:18px;">商家管理</h1>
+      <div class="db-card" style="margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;">
+        <h2 style="font-size:1.1rem;font-weight:bold;">商家列表</h2>
+        <button id="addMerchantBtn" style="background:#22c55e;color:#fff;padding:8px 22px;border:none;border-radius:6px;font-size:1rem;cursor:pointer;transition:background 0.2s;">+ 添加商家</button>
+      </div>
+      <div class="db-card" style="padding-top:18px;">
+        <div id="restaurantList" style="max-height:340px;overflow-y:auto;"></div>
+      </div>
+      <div id="editModal" style="display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.18);z-index:99;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.18);width:420px;max-width:96vw;padding:32px 28px 24px 28px;position:relative;">
+          <button id="closeEditModal" style="position:absolute;right:18px;top:14px;font-size:1.3rem;background:none;border:none;cursor:pointer;color:#888;">×</button>
+          <div id="editMerchantInfo"></div>
+          <div style="margin-top:22px;margin-bottom:10px;font-weight:bold;font-size:1.08rem;">菜品列表</div>
+          <div id="merchantMenuList" style="max-height:220px;overflow-y:auto;"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="db-database.js"></script>
+  <script>
+    const restaurantList = document.getElementById('restaurantList');
+    const addMerchantBtn = document.getElementById('addMerchantBtn');
+    // 渲染商家列表
+    async function renderRestaurantList() {
+      await window.db.init();
+      const restaurants = await window.db.getAllRestaurants();
+      if (!restaurants || restaurants.length === 0) {
+        restaurantList.innerHTML = '<div class="merchant-empty">暂无商家数据，请点击右上角"添加商家"</div>';
+        return;
+      }
+      restaurantList.innerHTML = restaurants.map(restaurant => `
+        <div class="merchant-row">
+          <div class="merchant-info">
+            <div class="merchant-name">${restaurant.name}</div>
+            <div class="merchant-meta">评分: ${restaurant.rating} | 销量: ${restaurant.sales}</div>
+          </div>
+          <div class="merchant-actions">
+            <span class="merchant-status ${restaurant.status === 'active' ? 'active' : 'inactive'}">
+              ${restaurant.status === 'active' ? '营业中' : '暂停营业'}
+            </span>
+            <button class="merchant-btn edit" onclick="editRestaurant('${restaurant.id}')">查看</button>
+            <button class="merchant-btn delete" onclick="deleteRestaurant('${restaurant.id}')">删除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    // 删除商家
+    async function deleteRestaurant(id) {
+      if (!confirm('确定要删除该商家吗？')) return;
+      await window.db.deleteRestaurant(id);
+      renderRestaurantList();
+      alert('删除成功！');
+    }
+    // 编辑商家（弹窗/后续实现）
+    async function editRestaurant(id) {
+      await window.db.init();
+      const merchant = await window.db.getRestaurant(id);
+      const menuItems = await window.db.getMenuItemsByRestaurant(id);
+      // 商家信息区
+      let infoHtml = `<div style='font-size:1.13rem;font-weight:bold;margin-bottom:8px;'>${merchant.name}</div>`;
+      infoHtml += `<div style='color:#64748b;font-size:0.98rem;margin-bottom:2px;'>评分: ${merchant.rating} | 销量: ${merchant.sales}</div>`;
+      infoHtml += `<div style='color:#888;font-size:0.97rem;'>状态: <span style='color:${merchant.status==='active'?'#059669':'#b91c1c'}'>${merchant.status==='active'?'营业中':'暂停营业'}</span></div>`;
+      // 新增详细地址、电话、备用电话
+      if (merchant.address) {
+        infoHtml += `<div style='color:#444;font-size:0.97rem;margin-top:4px;'>详细地址: ${merchant.address}</div>`;
+      }
+      if (merchant.phone) {
+        infoHtml += `<div style='color:#444;font-size:0.97rem;margin-top:2px;'>电话: ${merchant.phone}</div>`;
+      }
+      if (merchant.backupPhone) {
+        infoHtml += `<div style='color:#444;font-size:0.97rem;margin-top:2px;'>备用电话: ${merchant.backupPhone}</div>`;
+      }
+      document.getElementById('editMerchantInfo').innerHTML = infoHtml;
+      // 菜品列表区
+      const menuList = document.getElementById('merchantMenuList');
+      if(!menuItems || menuItems.length===0) {
+        menuList.innerHTML = '<div style="color:#b0b3b8;text-align:center;padding:18px 0;">暂无菜品</div>';
+      } else {
+        menuList.innerHTML = menuItems.map(item=>`
+          <div class='menu-row'>
+            <div class='menu-info'>
+              <div class='menu-name'>${item.name}</div>
+              <div class='menu-desc'>${item.description||''}</div>
+            </div>
+            <div class='menu-meta'>
+              <div class='menu-price'>￥${item.price}</div>
+              <div class='menu-id'>商家ID: ${item.restaurantId}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+      document.getElementById('editModal').style.display = 'flex';
+    }
+    // 关闭弹窗
+    document.getElementById('closeEditModal').onclick = function() {
+      document.getElementById('editModal').style.display = 'none';
+    };
+    // 点击遮罩关闭弹窗
+    document.getElementById('editModal').onclick = function(e) {
+      if(e.target===this) this.style.display='none';
+    };
+    // 预留添加商家功能
+    addMerchantBtn.onclick = function() {
+      alert('添加商家功能可后续实现');
+    };
+    document.addEventListener('DOMContentLoaded', renderRestaurantList);
+  </script>
+</body>
+</html> 

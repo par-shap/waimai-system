@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>订单后台管理系统</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="text/javascript">
+    window._AMapSecurityConfig = {
+      securityJsCode: '88131e5e8d6707e00b465f86aae89504'
+    };
+  </script>
+  <script src="https://webapi.amap.com/maps?v=2.0&key=c424814a68db2d5a6f11750e81458a69"></script>
+  <link rel="stylesheet" href="rider.css">
+</head>
+<body class="bg-white min-h-screen">
+  <div style="display:flex;min-height:100vh;">
+    <div id="riderSidebar"></div>
+    <div class="main-content max-w-7xl mx-auto p-6 min-h-screen" style="flex:1;">
+      <div class="bg-white border-b-2 border-black mb-8">
+        <h1 class="text-2xl font-bold py-6 pl-4">订单后台管理系统</h1>
+      </div>
+      <div id="orderList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4"></div>
+    </div>
+  </div>
+  <!-- 无人机地址地图弹窗 -->
+  <div id="riderMapModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;box-shadow:0 4px 24px #0002;width:90vw;max-width:480px;height:70vh;position:relative;display:flex;flex-direction:column;">
+      <div style="padding:12px 16px 0 16px;display:flex;align-items:center;gap:8px;">
+        <input id="riderMapSearchInput" type="text" placeholder="搜索位置" style="flex:1;padding:6px 12px;border-radius:8px;border:1px solid #ccc;outline:none;" />
+        <button id="riderMapSearchBtn" style="padding:6px 16px;background:#1677ff;color:#fff;border:none;border-radius:8px;">搜索</button>
+        <button id="riderMapCloseBtn" style="padding:6px 16px;background:#eee;color:#333;border:none;border-radius:8px;">关闭</button>
+      </div>
+      <div id="riderAmapContainer" style="flex:1;width:100%;height:100%;margin:12px 0 0 0;"></div>
+      <button id="riderMapConfirmBtn" style="margin:16px auto 16px auto;padding:8px 32px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:16px;">确认地址</button>
+    </div>
+  </div>
+  <script src="../db/db-database.js"></script>
+  <script src="rider.js"></script>
+</body>
+</html> 

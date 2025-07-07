@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外卖点餐系统 - 后台管理</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        .hidden { display: none !important; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF4D4F',
+                        secondary: '#FF7A45',
+                        dark: '#1F1F1F',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 登录页面 -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 shadow-lg max-w-md w-full mx-4">
+            <div class="text-center mb-8">
+                <i class="fa fa-cutlery text-primary text-4xl mb-4"></i>
+                <h1 class="text-2xl font-bold text-dark">后台管理系统</h1>
+                <p class="text-gray-600 mt-2">外卖点餐系统管理后台</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">用户名</label>
+                    <input type="text" id="username" required
+                           class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-1">密码</label>
+                    <input type="password" id="password" required
+                           class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg transition-colors duration-300">
+                    登录
+                </button>
+            </form>
+            
+            <div class="mt-4 text-center">
+                <p class="text-sm text-gray-500">默认账号：admin / 密码：123456</p>
+                <p class="text-xs text-gray-400 mt-2">为了安全考虑，每次打开页面都需要重新登录</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主管理页面 -->
+    <div id="mainPage" class="hidden">
+        <!-- 顶部导航 -->
+        <header class="bg-white shadow-sm sticky top-0 z-50">
+            <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fa fa-cutlery text-primary text-2xl"></i>
+                    <h1 class="text-xl font-bold text-dark">后台管理系统</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="adminName" class="text-gray-600">管理员</span>
+                    <button id="logoutBtn" class="text-gray-600 hover:text-primary transition-colors duration-300">
+                        <i class="fa fa-sign-out"></i>
+                        <span class="ml-1">退出</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <div class="container mx-auto px-4 py-6">
+            <!-- 功能按钮 -->
+            <div class="flex flex-wrap gap-4 mb-6">
+                <button id="addRestaurantBtn" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg transition-colors duration-300">
+                    <i class="fa fa-plus mr-2"></i>添加商家
+                </button>
+                <button id="manageMenuBtn" class="bg-secondary hover:bg-secondary/90 text-white px-6 py-3 rounded-lg transition-colors duration-300">
+                    <i class="fa fa-list mr-2"></i>菜品管理
+                </button>
+                <button id="viewOrdersBtn" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors duration-300">
+                    <i class="fa fa-shopping-cart mr-2"></i>订单查看
+                </button>
+            </div>
+
+            <!-- 商家列表 -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-xl font-bold text-dark">商家管理</h2>
+                    <p class="text-gray-600 mt-1">管理所有商家信息和菜品</p>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">商家信息</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">评分</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">月售</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">起送价</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">配送费</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="restaurantTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- 商家数据会动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑商家模态框 -->
+    <div id="restaurantModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-2xl w-full max-w-2xl mx-4 transform scale-95 transition-transform duration-300">
+            <div class="flex items-center justify-between p-6 border-b border-gray-100">
+                <h3 id="modalTitle" class="text-lg font-semibold text-dark">添加商家</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors duration-300">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="restaurantForm" class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">商家名称</label>
+                        <input type="text" id="restaurantName" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-1">商家图片URL</label>
+                        <input type="url" id="restaurantImage" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">评分</label>
+                        <input type="number" id="restaurantRating" step="0.1" min="0" max="5" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">月售量</label>
+                        <input type="number" id="restaurantSales" min="0" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">起送价</label>
+                        <input type="number" id="restaurantMinOrder" min="0" step="0.01" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">配送费</label>
+                        <input type="number" id="restaurantDeliveryFee" min="0" step="0.01" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">配送时间</label>
+                        <input type="text" id="restaurantDeliveryTime" placeholder="如：15-30分钟" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">状态</label>
+                        <select id="restaurantStatus" class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                            <option value="active">营业中</option>
+                            <option value="inactive">暂停营业</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">详细地址</label>
+                        <input type="text" id="restaurantAddress" readonly style="background:#f9fafb;cursor:pointer;"
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">电话</label>
+                        <input type="text" id="restaurantPhone" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">备用电话</label>
+                        <input type="text" id="restaurantBackupPhone"
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                        取消
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors duration-300">
+                        保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 菜品管理模态框 -->
+    <div id="menuModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-2xl w-full max-w-4xl mx-4 transform scale-95 transition-transform duration-300">
+            <div class="flex items-center justify-between p-6 border-b border-gray-100">
+                <h3 id="menuModalTitle" class="text-lg font-semibold text-dark">菜品管理</h3>
+                <button id="closeMenuModal" class="text-gray-400 hover:text-gray-600 transition-colors duration-300">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 id="currentRestaurantName" class="text-lg font-medium">商家名称</h4>
+                    <button id="addMenuItemBtn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors duration-300">
+                        <i class="fa fa-plus mr-2"></i>添加菜品
+                    </button>
+                </div>
+                
+                <div id="menuItemsList" class="space-y-3">
+                    <!-- 菜品列表会动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑菜品模态框 -->
+    <div id="menuItemModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-2xl w-full max-w-md mx-4 transform scale-95 transition-transform duration-300">
+            <div class="flex items-center justify-between p-6 border-b border-gray-100">
+                <h3 id="menuItemModalTitle" class="text-lg font-semibold text-dark">添加菜品</h3>
+                <button id="closeMenuItemModal" class="text-gray-400 hover:text-gray-600 transition-colors duration-300">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="menuItemForm" class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">菜品名称</label>
+                        <input type="text" id="menuItemName" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-1">价格</label>
+                        <input type="number" id="menuItemPrice" min="0" step="0.01" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">菜品图片URL</label>
+                        <input type="url" id="menuItemImage" required
+                               class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">菜品描述</label>
+                        <textarea id="menuItemDescription" rows="3" required
+                                  class="w-full border border-gray-200 rounded-lg py-2 px-4 focus:outline-none focus:border-primary"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancelMenuItemBtn" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-300">
+                        取消
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors duration-300">
+                        保存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../db/db-database.js"></script>
+    <script src="adm-admin.js"></script>
+</body>
+</html> 

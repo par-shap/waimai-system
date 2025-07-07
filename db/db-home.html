@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据库管理系统 - 主页</title>
+  <link rel="stylesheet" href="db-db-admin.css">
+  <style>
+    .dashboard-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 32px; margin-bottom: 24px; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 24px; margin-bottom: 24px; }
+    .dashboard-btns { display: flex; gap: 16px; margin-top: 16px; }
+    .dashboard-btn { flex: 1; font-size: 1.1rem; padding: 12px 0; border-radius: 6px; border: none; cursor: pointer; transition: background 0.2s; }
+    .dashboard-btn.refresh { background: #2563eb; color: #fff; }
+    .dashboard-btn.refresh:hover { background: #1d4ed8; }
+    .dashboard-btn.export { background: #22c55e; color: #fff; }
+    .dashboard-btn.export:hover { background: #16a34a; }
+    .dashboard-btn.clear { background: #ef4444; color: #fff; }
+    .dashboard-btn.clear:hover { background: #b91c1c; }
+    .dashboard-stat { font-size: 2.2rem; font-weight: bold; margin-top: 8px; }
+    .stat-blue { color: #2563eb; }
+    .stat-green { color: #22c55e; }
+    .stat-purple { color: #a21caf; }
+    .stat-orange { color: #ea580c; }
+    .dashboard-status { margin-bottom: 18px; }
+    .dashboard-status .success { color: #22c55e; }
+    .dashboard-status .error { color: #ef4444; }
+    .dashboard-status .info { color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="db-admin-layout">
+    <aside class="db-sidebar">
+      <div class="db-sidebar-title">数据库管理</div>
+      <a href="db-home.html" class="db-sidebar-link active">主页</a>
+      <a href="db-dataBase.html" class="db-sidebar-link">管理商家</a>
+      <a href="db-user.html" class="db-sidebar-link">管理用户</a>
+      <a href="orderBase/db-orderBase.html" class="db-sidebar-link">管理订单</a>
+      <a href="db-rider.html" class="db-sidebar-link">管理骑手</a>
+    </aside>
+    <main class="db-main-content">
+      <h1>欢迎使用数据库管理系统</h1>
+      <div class="dashboard-card">
+        <div class="dashboard-status" id="dbStatus">正在初始化数据库...</div>
+        <div class="dashboard-grid">
+          <div>
+            <div>商家数量</div>
+            <div class="dashboard-stat stat-blue" id="restaurantCount">-</div>
+          </div>
+          <div>
+            <div>菜品数量</div>
+            <div class="dashboard-stat stat-green" id="menuItemCount">-</div>
+          </div>
+          <div>
+            <div>订单数量</div>
+            <div class="dashboard-stat stat-purple" id="orderCount">-</div>
+          </div>
+          <div>
+            <div>数据库版本</div>
+            <div class="dashboard-stat stat-orange" id="dbVersion">-</div>
+          </div>
+        </div>
+        <div class="dashboard-btns">
+          <button class="dashboard-btn refresh" onclick="refreshData()">刷新数据</button>
+          <button class="dashboard-btn export" onclick="exportData()">导出数据</button>
+          <button class="dashboard-btn clear" onclick="clearAllData()">清空数据</button>
+        </div>
+      </div>
+      <div class="dashboard-card">
+        <h2 style="font-size:1.2rem;font-weight:bold;margin-bottom:16px;">操作日志</h2>
+        <div id="logArea" style="background:#f4f5f7;border-radius:8px;padding:18px 16px;min-height:120px;max-height:260px;overflow-y:auto;font-family:monospace;font-size:14px;">等待操作...</div>
+      </div>
+    </main>
+  </div>
+  <script src="db-database.js"></script>
+  <script>
+    // 页面元素
+    const dbStatus = document.getElementById('dbStatus');
+    const restaurantCount = document.getElementById('restaurantCount');
+    const menuItemCount = document.getElementById('menuItemCount');
+    const orderCount = document.getElementById('orderCount');
+    const dbVersion = document.getElementById('dbVersion');
+    const logArea = document.getElementById('logArea');
+
+    // 添加日志
+    function addLog(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      let color = '#64748b';
+      if(type==='success') color = '#22c55e';
+      if(type==='error') color = '#ef4444';
+      logArea.innerHTML += `<div style='color:${color}'>[${timestamp}] ${message}</div>`;
+      logArea.scrollTop = logArea.scrollHeight;
+      // 控制最大日志条数
+      if(logArea.children.length>50) logArea.removeChild(logArea.firstChild);
+    }
+
+    // 更新数据库状态
+    function updateDBStatus(message, type = 'info') {
+      dbStatus.className = 'dashboard-status ' + type;
+      dbStatus.innerHTML = message;
+      addLog(message, type);
+    }
+
+    // 刷新数据
+    async function refreshData() {
+      addLog('开始刷新数据...');
+      updateDBStatus('正在刷新数据...', 'info');
+      try {
+        await window.db.init();
+        const restaurants = await window.db.getAllRestaurants();
+        const menuItems = await window.db.getAllMenuItems();
+        const orders = await window.db.getAllOrders();
+        restaurantCount.textContent = restaurants.length;
+        menuItemCount.textContent = menuItems.length;
+        orderCount.textContent = orders.length;
+        dbVersion.textContent = window.db.dbVersion;
+        updateDBStatus('数据刷新成功', 'success');
+        addLog(`数据刷新完成: ${restaurants.length} 商家, ${menuItems.length} 菜品, ${orders.length} 订单`, 'success');
+      } catch (error) {
+        updateDBStatus('数据刷新失败: ' + error.message, 'error');
+      }
+    }
+
+    // 导出数据
+    async function exportData() {
+      addLog('开始导出数据...');
+      updateDBStatus('正在导出数据...', 'info');
+      try {
+        const data = await window.db.exportAllData();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `外卖系统数据_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        updateDBStatus('数据导出成功', 'success');
+      } catch (error) {
+        updateDBStatus('数据导出失败: ' + error.message, 'error');
+      }
+    }
+
+    // 清空所有数据
+    async function clearAllData() {
+      if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) return;
+      addLog('开始清空所有数据...');
+      updateDBStatus('正在清空所有数据...', 'info');
+      try {
+        await window.db.clearAllData();
+        await window.db.initDefaultData();
+        await refreshData();
+        updateDBStatus('数据清空并重新初始化完成', 'success');
+      } catch (error) {
+        updateDBStatus('数据清空失败: ' + error.message, 'error');
+      }
+    }
+
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      addLog('数据库管理主页页面加载完成', 'success');
+      updateDBStatus('正在初始化数据库...', 'info');
+      setTimeout(() => {
+        refreshData();
+      }, 800);
+    });
+  </script>
+</body>
+</html> 
