@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 await window.db.saveUserAddress(addressData);
                 alert('保存成功');
                 // 跳转到主页点餐模块并自动切换到点餐tab
-                window.location.href = '/littleApp/order/order.html?tab=order';
+                window.location.href = '/waimai-system/littleApp/order/order.html?tab=order';
             } catch (error) {
                 console.error('保存地址失败:', error);
                 alert('保存失败，请重试');
