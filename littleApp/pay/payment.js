@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // 清空购物车
             localStorage.removeItem('cart');
             // 显示支付成功
-            window.location.href = '/littleApp/pay/paymentSuccess.html';
+            window.location.href = '/waimai-system/littleApp/pay/paymentSuccess.html';
         } catch (error) {
             console.error('支付失败:', error);
             alert('支付失败，请重试');
