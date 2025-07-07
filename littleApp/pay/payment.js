@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log('支付页读取到的订单对象:', order);
             if (!order) {
                 alert('未找到订单，请重新下单');
-                window.location.href = '/par-shap/waimai-system/littleApp/order/orderDetail.html';
+                window.location.href = '/waimai-system/littleApp/order/orderDetail.html';
                 return;
             }
 

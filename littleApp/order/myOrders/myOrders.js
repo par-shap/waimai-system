@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
       card.onclick = function() {
         const orderId = card.getAttribute('data-id');
         if(orderId) {
-          window.location.href = `/par-shap/waimai-system/littleApp/order/orderDetail.html?id=${orderId}`;
+          window.location.href = `/waimai-system/littleApp/order/orderDetail.html?id=${orderId}`;
         }
       };
     });
