@@ -42,10 +42,6 @@
     </aside>
     <main class="db-main-content">
       <h1 style="margin-bottom:18px;">商家管理</h1>
-      <div class="db-card" style="margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;">
-        <h2 style="font-size:1.1rem;font-weight:bold;">商家列表</h2>
-        <button id="addMerchantBtn" style="background:#22c55e;color:#fff;padding:8px 22px;border:none;border-radius:6px;font-size:1rem;cursor:pointer;transition:background 0.2s;">+ 添加商家</button>
-      </div>
       <div class="db-card" style="padding-top:18px;">
         <div id="restaurantList" style="max-height:340px;overflow-y:auto;"></div>
       </div>
@@ -62,7 +58,6 @@
   <script src="db-database.js"></script>
   <script>
     const restaurantList = document.getElementById('restaurantList');
-    const addMerchantBtn = document.getElementById('addMerchantBtn');
     // 渲染商家列表
     async function renderRestaurantList() {
       await window.db.init();
@@ -141,10 +136,6 @@
     // 点击遮罩关闭弹窗
     document.getElementById('editModal').onclick = function(e) {
       if(e.target===this) this.style.display='none';
-    };
-    // 预留添加商家功能
-    addMerchantBtn.onclick = function() {
-      alert('添加商家功能可后续实现');
     };
     document.addEventListener('DOMContentLoaded', renderRestaurantList);
   </script>

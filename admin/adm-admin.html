@@ -88,9 +88,6 @@
                 <button id="manageMenuBtn" class="bg-secondary hover:bg-secondary/90 text-white px-6 py-3 rounded-lg transition-colors duration-300">
                     <i class="fa fa-list mr-2"></i>菜品管理
                 </button>
-                <button id="viewOrdersBtn" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors duration-300">
-                    <i class="fa fa-shopping-cart mr-2"></i>订单查看
-                </button>
             </div>
 
             <!-- 商家列表 -->
@@ -124,7 +121,7 @@
 
     <!-- 添加/编辑商家模态框 -->
     <div id="restaurantModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-2xl mx-4 transform scale-95 transition-transform duration-300">
+        <div class="bg-white rounded-2xl w-full max-w-2xl mx-4 transform scale-95 transition-transform duration-300" style="max-height:90vh;overflow-y:auto;">
             <div class="flex items-center justify-between p-6 border-b border-gray-100">
                 <h3 id="modalTitle" class="text-lg font-semibold text-dark">添加商家</h3>
                 <button id="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors duration-300">

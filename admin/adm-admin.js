@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         // 商家管理元素
         const addRestaurantBtn = document.getElementById('addRestaurantBtn');
         const manageMenuBtn = document.getElementById('manageMenuBtn');
-        const viewOrdersBtn = document.getElementById('viewOrdersBtn');
         const restaurantTableBody = document.getElementById('restaurantTableBody');
         
         // 模态框元素
@@ -111,7 +110,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             // 商家管理
             addRestaurantBtn.addEventListener('click', () => showRestaurantModal());
             manageMenuBtn.addEventListener('click', handleManageMenu);
-            viewOrdersBtn.addEventListener('click', handleViewOrders);
             
             // 模态框关闭
             document.getElementById('closeModal').addEventListener('click', hideRestaurantModal);
@@ -549,11 +547,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 alert('获取菜品信息失败，请重试');
             }
         };
-        
-        // 处理订单查看
-        function handleViewOrders() {
-            alert('订单查看功能正在开发中...');
-        }
     } catch (error) {
         console.error('后台管理系统初始化失败:', error);
         alert('后台管理系统初始化失败，请刷新页面重试');

@@ -24,30 +24,42 @@
   top: 0;
   bottom: 0;
   height: 100vh;
-  width: 200px;
-  background: #fff;
-  border-right: 2px solid #eee;
+  width: 220px !important;
+  min-width: 220px !important;
+  max-width: 220px !important;
+  background: #f8fafc;
+  border-right: 2px solid #e5e7eb;
   z-index: 9999;
-  padding: 24px 12px 24px 12px;
-  box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+  padding-top: 24px;
+  padding-bottom: 24px;
+  box-shadow: 2px 0 16px rgba(0,0,0,0.06);
   overflow-y: auto;
+  border-radius: 0 18px 18px 0;
 }
 .rider-sidebar h3 {
-  font-weight: bold;
-  font-size: 1.1rem;
-  margin-bottom: 12px;
+  color: #1677ff;
+  font-size: 1.15rem;
+  margin-bottom: 18px;
+  letter-spacing: 1px;
 }
 .rider-item {
-  margin-bottom: 10px;
-  padding: 6px 0;
-  border-bottom: 1px solid #eee;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #0001;
+  margin-bottom: 16px;
+  padding: 12px 10px 10px 10px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .rider-phone, .rider-status {
   font-size: 12px;
   color: #888;
 }
 .main-content {
-  margin-left: 220px;
+  margin-left: 220px !important;
+  transition: margin 0.3s;
 }
 .rider-status-btn {
   display: inline-block;
@@ -66,4 +78,113 @@
 }
 .rider-offline {
   background: #ef4444;
+}
+
+/* 订单信息模块美化 */
+.order-list-module {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px #0002;
+  border: 1.5px solid #e5e7eb;
+  margin-bottom: 24px;
+  padding: 24px 16px 16px 16px;
+}
+.order-list-module h2 {
+  color: #22c55e;
+  font-size: 1.2rem;
+  margin-bottom: 18px;
+  letter-spacing: 1px;
+}
+.order-card {
+  border-radius: 14px;
+  border: 1.5px solid #e5e7eb;
+  box-shadow: 0 2px 10px #0001;
+  background: #f9fafb;
+  margin: 0 auto 18px auto;
+  padding: 18px 10px 12px 10px;
+}
+
+/* 滚动优化 */
+.rider-sidebar::-webkit-scrollbar {
+  width: 6px;
+  background: #f1f1f1;
+}
+.rider-sidebar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 6px;
+}
+
+.sidebar-nav-btn {
+  display: block;
+  width: 90%;
+  margin: 0 auto 12px auto;
+  padding: 12px 0;
+  text-align: center;
+  background: #f1f5f9;
+  color: #1677ff;
+  font-weight: 600;
+  border-radius: 10px;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.sidebar-nav-btn:hover, .sidebar-nav-btn.active {
+  background: #1677ff;
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    margin-left: 0 !important;
+    padding: 8px !important;
+  }
+  .rider-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 10000;
+    height: 100vh;
+    width: 80vw !important;
+    min-width: 0 !important;
+    max-width: 320px !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.18);
+    border-radius: 0 18px 18px 0;
+  }
+  .rider-sidebar.active {
+    transform: translateX(0);
+  }
+  .sidebar-nav-btn {
+    width: 98%;
+    font-size: 1.1rem;
+    padding: 16px 0;
+  }
+}
+@media (max-width: 600px) {
+  .main-content {
+    padding: 4px !important;
+  }
+  .order-list-module {
+    padding: 8px 2px 8px 2px;
+  }
+  .order-card {
+    min-width: 90vw;
+    max-width: 98vw;
+    padding: 8px 4px;
+  }
+  .rider-sidebar {
+    width: 98vw;
+    min-width: 0;
+    padding: 12px 4px 12px 4px;
+  }
+  .rider-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .rider-address-input, .rider-speed-input {
+    width: 90vw !important;
+    min-width: 0 !important;
+    max-width: 98vw !important;
+  }
 }

@@ -24,7 +24,43 @@
       </div>
     </main>
   </div>
+  <!-- 编辑骑手弹窗 -->
+  <div id="editRiderModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.18); z-index:999; align-items:center; justify-content:center;">
+    <form id="editRiderForm" style="background:#fff; border-radius:10px; padding:32px 24px; min-width:320px; max-width:90vw; margin:120px auto; box-shadow:0 4px 24px #0002;">
+      <h3>编辑骑手信息</h3>
+      <div class="form-row">
+        <label>ID</label>
+        <input name="id" readonly />
+      </div>
+      <div class="form-row">
+        <label>姓名</label>
+        <input name="name" required />
+      </div>
+      <div class="form-row">
+        <label>电话</label>
+        <input name="phone" required />
+      </div>
+      <div class="form-row">
+        <label>状态</label>
+        <select name="status">
+          <option value="online">已上线</option>
+          <option value="working">工作中</option>
+          <option value="idle">空闲</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>速度</label>
+        <input name="speed" type="number" min="1" max="200" required />
+        <span class="unit">公里/小时</span>
+      </div>
+      <div style="text-align:right;">
+        <button type="submit">保存</button>
+        <button type="button" onclick="closeEditRiderModal()">取消</button>
+      </div>
+    </form>
+  </div>
   <style>
+    .rider-table-wrapper { width: 100%; overflow-x: auto; }
     .rider-table { width: 100%; border-collapse: collapse; min-width: 520px; }
     .rider-table th { background: #f1f5f9; color: #232946; font-weight: bold; padding: 10px 8px; border-bottom: 2px solid #e5e7eb; }
     .rider-table td { background: #fff; padding: 10px 8px; border-bottom: 1px solid #f1f5f9; text-align: center; }
@@ -35,6 +71,95 @@
     .rider-btn.delete { background: #ef4444; color: #fff; }
     .rider-btn.delete:hover { background: #b91c1c; }
     .rider-empty { color: #b0b3b8; text-align: center; padding: 32px 0; font-size: 1.08rem; }
+    @media (max-width: 700px) {
+      .db-sidebar { font-size: 13px; min-width: 80px; max-width: 120px; overflow-x: auto; }
+      .db-sidebar-link, .db-sidebar-title { white-space: nowrap; }
+      .rider-table { display: block; min-width: 0; }
+      .rider-table thead { display: none; }
+      .rider-table tbody { display: block; }
+      .rider-table tr { display: block; margin-bottom: 16px; background: #fff; border-radius: 8px; box-shadow: 0 1px 4px #0001; padding: 8px 0; }
+      .rider-table td { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border: none; border-bottom: 1px solid #f1f5f9; font-size: 15px; }
+      .rider-table td:before { content: attr(data-label); color: #64748b; font-size: 13px; font-weight: bold; margin-right: 8px; }
+      .rider-table tr:last-child td { border-bottom: none; }
+    }
+    /* 编辑弹窗美化 */
+    #editRiderForm label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #232946;
+    }
+    #editRiderForm input, #editRiderForm select {
+      width: 100%;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      background: #f4f5f7;
+      font-size: 1rem;
+      margin-bottom: 0;
+      transition: box-shadow 0.2s, background 0.2s;
+      box-sizing: border-box;
+    }
+    #editRiderForm input:focus, #editRiderForm select:focus {
+      outline: none;
+      background: #fff;
+      box-shadow: 0 0 0 2px #2563eb33;
+    }
+    #editRiderForm h3 {
+      text-align: center;
+      margin-bottom: 24px;
+      color: #232946;
+    }
+    #editRiderForm .form-row {
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    #editRiderForm button[type="submit"] {
+      background: linear-gradient(90deg, #2563eb 60%, #1d4ed8 100%);
+      color: #fff;
+      padding: 8px 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      box-shadow: 0 2px 8px #2563eb22;
+      cursor: pointer;
+      margin-right: 12px;
+      transition: background 0.18s, box-shadow 0.18s;
+    }
+    #editRiderForm button[type="submit"]:hover {
+      background: linear-gradient(90deg, #1d4ed8 60%, #2563eb 100%);
+      box-shadow: 0 4px 16px #2563eb33;
+    }
+    #editRiderForm button[type="button"] {
+      background: #f4f5f7;
+      color: #232946;
+      padding: 8px 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+    #editRiderForm button[type="button"]:hover {
+      background: #e5e7eb;
+    }
+    #editRiderForm .unit {
+      margin-left: 8px;
+      color: #64748b;
+      font-size: 0.98rem;
+      position: absolute;
+      right: 12px;
+      top: 38px;
+      pointer-events: none;
+    }
+    #editRiderForm input[readonly] {
+      background: #e5e7eb;
+      color: #888;
+    }
   </style>
   <script src="db-database.js"></script>
   <script>
@@ -50,7 +175,11 @@
         riderListTable.innerHTML = '<div class="rider-empty">暂无已上线或工作中骑手</div>';
         return;
       }
-      riderListTable.innerHTML = `<table class="rider-table"><thead><tr><th>ID</th><th>姓名</th><th>电话</th><th>状态</th><th>当前订单</th><th>操作</th></tr></thead><tbody>${riders.map(r => `<tr><td>${r.id}</td><td>${r.name}</td><td>${r.phone||''}</td><td>${r.status==='working'?'工作中':(r.status==='online'?'已上线':'空闲')}</td><td>${r.currentOrderId||''}</td><td><button class='rider-btn edit' onclick='editRider(\"${r.id}\")'>编辑</button><button class='rider-btn delete' onclick='deleteRider(\"${r.id}\")'>删除</button></td></tr>`).join('')}</tbody></table>`;
+      riderListTable.innerHTML = `<div class="rider-table-wrapper"><table class="rider-table"><thead><tr><th>ID</th><th>姓名</th><th>电话</th><th>状态</th><th>位置</th><th>速度</th><th>当前订单</th><th>操作</th></tr></thead><tbody>${riders.map(r => {
+        const location = r.address || '';
+        const speed = r.speed ? r.speed + ' 公里/小时' : '';
+        return `<tr><td data-label='ID'>${r.id}</td><td data-label='姓名'>${r.name}</td><td data-label='电话'>${r.phone||''}</td><td data-label='状态'>${r.status==='working'?'工作中':(r.status==='online'?'已上线':'空闲')}</td><td data-label='位置'>${location}</td><td data-label='速度'>${speed}</td><td data-label='当前订单'>${r.currentOrderId||''}</td><td data-label='操作'><button class='rider-btn edit' onclick='editRider(\"${r.id}\")'>编辑</button><button class='rider-btn delete' onclick='deleteRider(\"${r.id}\")'>删除</button></td></tr>`;
+      }).join('')}</tbody></table></div>`;
     }
     document.addEventListener('DOMContentLoaded', async () => {
       await renderRiderTable();
@@ -70,6 +199,49 @@
         renderRiderTable();
         alert('删除成功！');
       }
+    };
+
+    // 编辑弹窗相关逻辑
+    function openEditRiderModal(rider) {
+      const modal = document.getElementById('editRiderModal');
+      const form = document.getElementById('editRiderForm');
+      form.id.value = rider.id;
+      form.name.value = rider.name || '';
+      form.phone.value = rider.phone || '';
+      form.status.value = rider.status || 'idle';
+      form.speed.value = rider.speed || '';
+      modal.style.display = 'flex';
+    }
+    function closeEditRiderModal() {
+      document.getElementById('editRiderModal').style.display = 'none';
+    }
+    document.getElementById('editRiderForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const id = form.id.value;
+      const name = form.name.value.trim();
+      const phone = form.phone.value.trim();
+      const status = form.status.value;
+      const speed = form.speed.value.trim();
+      if (!id || !name || !phone || !speed) return;
+      await window.db.init();
+      const rider = await window.db.getRider(id);
+      if (rider) {
+        rider.name = name;
+        rider.phone = phone;
+        rider.status = status;
+        rider.speed = speed;
+        await window.db.updateRider(rider);
+        closeEditRiderModal();
+        // 刷新表格
+        if (typeof renderRiderTable === 'function') await renderRiderTable();
+      }
+    };
+    // 修改编辑按钮事件
+    window.editRider = async function(id){
+      await window.db.init();
+      const rider = await window.db.getRider(id);
+      if (rider) openEditRiderModal(rider);
     };
   </script>
 </body>

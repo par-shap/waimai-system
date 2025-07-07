@@ -411,6 +411,18 @@ class LocalDatabase {
         });
     }
 
+    // 删除骑手
+    async deleteRider(id) {
+        const db = await this.waitForDB();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['riders'], 'readwrite');
+            const store = transaction.objectStore('riders');
+            const request = store.delete(id);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
     // 用户表相关
     async addUser(user) {
         await this.init();

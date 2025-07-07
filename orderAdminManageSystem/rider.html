@@ -14,14 +14,28 @@
   <link rel="stylesheet" href="rider.css">
 </head>
 <body class="bg-white min-h-screen">
+  <button id="sidebarToggle" class="fixed top-4 left-4 z-50 bg-white border border-gray-300 rounded-full shadow p-2 flex items-center justify-center md:hidden" style="width:44px;height:44px;">
+    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+  </button>
   <div style="display:flex;min-height:100vh;">
-    <div id="riderSidebar"></div>
-    <div class="main-content max-w-7xl mx-auto p-6 min-h-screen" style="flex:1;">
-      <div class="bg-white border-b-2 border-black mb-8">
-        <h1 class="text-2xl font-bold py-6 pl-4">订单后台管理系统</h1>
-      </div>
-      <div id="orderList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4"></div>
-    </div>
+    <aside id="sidebarNav" class="rider-sidebar bg-white shadow-lg border-r-2 border-gray-200 flex flex-col items-center justify-start" style="min-width:220px;max-width:320px;">
+      <h2 class="text-lg font-bold text-blue-600 mb-6 mt-2">功能导航</h2>
+      <button id="navOrderBtn" class="sidebar-nav-btn mb-4 active" type="button">订单信息</button>
+      <button id="navRiderBtn" class="sidebar-nav-btn mb-4" type="button">骑手管理</button>
+    </aside>
+    <main class="main-content flex-1 max-w-7xl mx-auto p-4 min-h-screen bg-gray-50">
+      <section class="order-admin-header bg-white border-b-2 border-black mb-6 rounded-lg shadow-sm p-4 flex items-center">
+        <h1 class="text-2xl font-bold ml-0 md:ml-0" id="mainTitle">订单后台管理系统</h1>
+      </section>
+      <section id="orderListModule" class="order-list-module bg-white rounded-lg shadow p-4 mb-8">
+        <h2 class="text-lg font-semibold mb-4">订单信息</h2>
+        <div id="orderList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"></div>
+      </section>
+      <section id="riderManageModule" class="order-list-module bg-white rounded-lg shadow p-4" style="display:none;">
+        <h2 class="text-lg font-semibold mb-4">骑手管理</h2>
+        <div id="riderSidebar" class="rider-manage-list"></div>
+      </section>
+    </main>
   </div>
   <!-- 无人机地址地图弹窗 -->
   <div id="riderMapModal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
@@ -37,5 +51,54 @@
   </div>
   <script src="../db/db-database.js"></script>
   <script src="rider.js"></script>
+  <script>
+    // 移动端汉堡菜单展开/收起侧边栏
+    const sidebar = document.getElementById('sidebarNav');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    function closeSidebarOnMask(e) {
+      if (window.innerWidth <= 900 && sidebar.classList.contains('active')) {
+        sidebar.classList.remove('active');
+      }
+    }
+    if (toggleBtn) {
+      toggleBtn.onclick = function(e) {
+        e.stopPropagation();
+        sidebar.classList.toggle('active');
+      };
+    }
+    // 点击主内容区自动收起侧边栏
+    document.querySelector('.main-content').onclick = closeSidebarOnMask;
+    // 页面宽度变化时自动收起侧边栏
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 900) sidebar.classList.remove('active');
+    });
+    // 导航栏切换显示内容
+    const navOrderBtn = document.getElementById('navOrderBtn');
+    const navRiderBtn = document.getElementById('navRiderBtn');
+    const orderListModule = document.getElementById('orderListModule');
+    const riderManageModule = document.getElementById('riderManageModule');
+    navOrderBtn.onclick = function() {
+      navOrderBtn.classList.add('active');
+      navRiderBtn.classList.remove('active');
+      orderListModule.style.display = '';
+      riderManageModule.style.display = 'none';
+      if (window.innerWidth <= 900) sidebar.classList.remove('active');
+    };
+    navRiderBtn.onclick = function() {
+      navOrderBtn.classList.remove('active');
+      navRiderBtn.classList.add('active');
+      orderListModule.style.display = 'none';
+      riderManageModule.style.display = '';
+      if (window.innerWidth <= 900) sidebar.classList.remove('active');
+    };
+  </script>
+  <style>
+    @media (max-width: 900px) {
+      #mainTitle {
+        margin-left: 56px !important;
+        transition: margin 0.2s;
+      }
+    }
+  </style>
 </body>
 </html> 

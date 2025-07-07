@@ -149,6 +149,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // 查看菜单
         window.viewMenu = async function(restaurantId) {
+            console.log('点击商家ID:', restaurantId);
             currentRestaurantId = restaurantId;
             if (!carts[currentRestaurantId]) carts[currentRestaurantId] = [];
             try {
@@ -668,6 +669,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 return;
             }
             restaurants.forEach(restaurant => {
+                console.log('渲染商家ID:', restaurant.id, restaurant);
                 const restaurantCard = document.createElement('div');
                 restaurantCard.className = 'bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer group border border-gray-100 hover:border-primary';
                 restaurantCard.innerHTML = `

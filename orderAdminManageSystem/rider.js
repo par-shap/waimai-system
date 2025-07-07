@@ -30,14 +30,15 @@ async function loadOrders() {
       <div style="margin-top:16px;">
         ${assignedRider ?
           `<div style='margin-bottom:8px;'><b>已分配给：</b>${assignedRider.name}（${assignedRider.phone}）</div>
-           <button class="complete-order-btn" data-order-id="${order.id}" style="padding:4px 16px;background:#22c55e;color:#fff;border:none;border-radius:6px;">完成订单</button>`
+           <button class="complete-order-btn" data-order-id="${order.id}" style="display:block;margin:18px auto 0 auto;width:120px;padding:8px 0;background:#22c55e;color:#fff;border:none;border-radius:6px;font-size:16px;">完成订单</button>`
           :
           `<label style="font-weight:bold;">派单：</label>
            <select class="assign-rider-select" data-order-id="${order.id}" style="padding:4px 12px;border-radius:6px;border:1px solid #ccc;">
              <option value="">请选择骑手</option>
              ${onlineRiders.map(r => `<option value="${r.id}">${r.name}（${r.phone}）</option>`).join('')}
            </select>
-           <button class="assign-rider-btn" data-order-id="${order.id}" style="margin-left:8px;padding:4px 16px;background:#1677ff;color:#fff;border:none;border-radius:6px;">派单</button>`
+           <br/>
+           <button class="assign-rider-btn" data-order-id="${order.id}" style="display:block;margin:18px auto 0 auto;width:120px;padding:8px 0;background:#1677ff;color:#fff;border:none;border-radius:6px;font-size:16px;">派单</button>`
         }
       </div>
     `;
@@ -170,20 +171,25 @@ function renderRiderSidebar(riders) {
       <button type="submit" style="background:#22c55e;color:#fff;padding:2px 12px;border:none;border-radius:8px;font-size:13px;">添加</button>
     </form>
   ` +
-    riders.map(r => `<div style="margin-bottom:10px;padding:6px 0;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px;">
-      <div style="flex:1;">
-        <div><b>${r.name}</b>（ID:${r.id}）</div>
-        <div style="font-size:12px;color:#888;">${r.phone}</div>
+    riders.map(r => `
+      <div class="rider-item" style="display:flex;flex-direction:column;gap:2px;margin-bottom:14px;">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;">
+          <span style="font-weight:bold;">${r.name}</span>
+          <span style="font-size:12px;color:#888;">(ID:${r.id})</span>
+          <span style="font-size:12px;color:#888;">${r.phone}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:4px;">
+          <textarea class="rider-address-input" data-id="${r.id}" placeholder="骑手地址" style="width:160px;min-height:28px;max-height:60px;padding:2px 8px;border:1px solid #ccc;border-radius:8px;font-size:13px;outline:none;resize:vertical;overflow:auto;" readonly>${r.address || ''}</textarea>
+          <input class="rider-speed-input" data-id="${r.id}" value="${r.speed ? r.speed : ''}" placeholder="速度" style="width:60px;padding:2px 8px;border:1px solid #ccc;border-radius:8px;font-size:13px;outline:none;" readonly />
+          <span style="margin-left:2px;">公里/小时</span>
+          <button class="rider-status-toggle" data-id="${r.id}" data-status="${r.status || 'idle'}" style="margin:0 8px;width:72px;padding:2px 0;border:none;border-radius:12px;font-size:13px;font-weight:bold;${(r.status||'idle') === 'working' ? 'background:#e74c3c;color:#fff;' : (r.status === 'online' ? 'background:#ff9800;color:#fff;' : 'background:#22c55e;color:#fff;')};text-align:center;">
+            ${(r.status||'idle') === 'working' ? '工作中' : (r.status === 'online' ? '已上线' : '空闲')}
+          </button>
+          <button class="rider-edit-btn" data-id="${r.id}" style="background:#eee;color:#1677ff;padding:2px 8px;border:none;border-radius:8px;font-size:13px;cursor:pointer;">编辑</button>
+          <button class="rider-delete-btn" data-id="${r.id}" style="background:#eee;color:#e74c3c;padding:2px 8px;border:none;border-radius:8px;font-size:13px;cursor:pointer;">删除</button>
+        </div>
       </div>
-      <textarea class="rider-address-input" data-id="${r.id}" placeholder="骑手地址" style="width:220px;min-height:32px;max-height:60px;padding:2px 8px;border:1px solid #ccc;border-radius:8px;font-size:13px;outline:none;resize:vertical;overflow:auto;" readonly>${r.address || ''}</textarea>
-      <input class="rider-speed-input" data-id="${r.id}" value="${r.speed ? r.speed : ''}" placeholder="速度" style="width:80px;padding:2px 8px;border:1px solid #ccc;border-radius:8px;font-size:13px;outline:none;" readonly />
-      <span style="margin-left:2px;">公里/小时</span>
-      <button class="rider-status-toggle" data-id="${r.id}" data-status="${r.status || 'idle'}" style="margin:0 8px;width:72px;padding:2px 0;border:none;border-radius:12px;font-size:13px;font-weight:bold;${(r.status||'idle') === 'working' ? 'background:#e74c3c;color:#fff;' : (r.status === 'online' ? 'background:#ff9800;color:#fff;' : 'background:#22c55e;color:#fff;')};text-align:center;">
-        ${(r.status||'idle') === 'working' ? '工作中' : (r.status === 'online' ? '已上线' : '空闲')}
-      </button>
-      <button class="rider-edit-btn" data-id="${r.id}" style="background:#eee;color:#1677ff;padding:2px 8px;border:none;border-radius:8px;font-size:13px;cursor:pointer;">编辑</button>
-      <button class="rider-delete-btn" data-id="${r.id}" style="background:#eee;color:#e74c3c;padding:2px 8px;border:none;border-radius:8px;font-size:13px;cursor:pointer;">删除</button>
-    </div>`).join('');
+    `).join('');
 
   // 管理骑手按钮事件
   const manageBtn = sidebar.querySelector('#manageRiderBtn');
@@ -267,13 +273,32 @@ function renderRiderSidebar(riders) {
         btn.textContent = '保存';
         btn.style.background = '#22c55e';
         btn.style.color = '#fff';
+        window.isEditingRider = true;
+        // 失去焦点自动保存
+        speedInput.onblur = async function() {
+          if (!speedInput.hasAttribute('readonly')) {
+            speedInput.setAttribute('readonly', 'readonly');
+            btn.textContent = '编辑';
+            btn.style.background = '#eee';
+            btn.style.color = '#1677ff';
+            if (window.db && riderId) {
+              await window.db.init();
+              const rider = await window.db.getRider(riderId);
+              if (rider) {
+                rider.speed = speedInput.value;
+                await window.db.updateRider(rider);
+              }
+            }
+            window.isEditingRider = false;
+            renderRiderSidebar(await window.db.getAllRiders());
+          }
+        };
       } else {
         // 保存
         speedInput.setAttribute('readonly', 'readonly');
         btn.textContent = '编辑';
         btn.style.background = '#eee';
         btn.style.color = '#1677ff';
-        // 更新数据库
         if (window.db && riderId) {
           await window.db.init();
           const rider = await window.db.getRider(riderId);
@@ -282,6 +307,8 @@ function renderRiderSidebar(riders) {
             await window.db.updateRider(rider);
           }
         }
+        window.isEditingRider = false;
+        renderRiderSidebar(await window.db.getAllRiders());
       }
     };
   });
@@ -295,7 +322,7 @@ function renderRiderSidebar(riders) {
   
   // 定时刷新骑手状态，每5秒同步一次数据库
   setInterval(async () => {
-    if (window.db && !window.isManagingRider) {
+    if (window.db && !window.isManagingRider && !window.isEditingRider) {
       const riders = await window.db.getAllRiders();
       renderRiderSidebar(riders);
     }
