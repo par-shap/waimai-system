@@ -386,11 +386,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // 延迟跳转，确保localStorage写入完成
                 if (allAddresses[userId]) {
                     setTimeout(() => {
-                        window.location.href = '/littleApp/pay/payment.html';
+                        window.location.href = '/waimai-system/littleApp/pay/payment.html';
                     }, 100);
                 } else {
                     setTimeout(() => {
-                        window.location.href = '/littleApp/address/address.html';
+                        window.location.href = '/waimai-system/littleApp/address/address.html';
                     }, 100);
                 }
             };
