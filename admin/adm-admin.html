@@ -283,7 +283,68 @@
         </div>
     </div>
 
+    <!-- 地图弹窗 -->
+    <div id="mapModal" style="display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:9999;background:rgba(0,0,0,0.25);align-items:center;justify-content:center;">
+      <div id="amapMapWrap" style="background:#fff;border-radius:16px;box-shadow:0 4px 32px #0002;width:700px;max-width:96vw;height:500px;max-height:90vh;position:relative;display:flex;flex-direction:column;overflow:hidden;">
+        <style>
+          #amapMapWrap .search-bar {
+            position: absolute; top: 32px; left: 32px; z-index: 1001; display: flex; align-items: center; background: #f7f7fa; border-radius: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 0 16px; height: 48px; min-width: 340px; max-width: 90vw; }
+          #amapMapWrap .search-bar .search-icon { width: 28px; height: 28px; margin-right: 8px; display: flex; align-items: center; justify-content: center; }
+          #amapMapWrap .search-bar input { border: none; outline: none; font-size: 16px; flex: 1; min-width: 0; background: transparent; padding: 0 8px; color: #333; height: 40px; }
+          #amapMapWrap .search-bar .search-btn { background: none; border: none; outline: none; cursor: pointer; margin-left: 8px; display: flex; align-items: center; justify-content: center; padding: 0; box-shadow: none; filter: none; }
+          #amapMapWrap .search-bar .search-btn svg { width: 24px; height: 24px; color: #888; box-shadow: none; filter: none; stroke: none; outline: none; background: none; display: block; }
+          #amapMapWrap #searchResult { position: absolute; top: 80px; left: 32px; background: #fff; border: 1px solid #ccc; width: 340px; max-width: 90vw; max-height: 260px; overflow-y: auto; z-index: 1002; list-style: none; margin: 0; padding: 0; border-radius: 0 0 16px 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+          #amapMapWrap #searchResult li { padding: 10px 22px; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+          #amapMapWrap #searchResult li:hover, #amapMapWrap #searchResult li.active { background: #f2f3f5; color: #1677ff; }
+          #amapMapWrap #myLocationBtn { position: absolute; right: 30px; bottom: 30px; z-index: 1000; width: 48px; height: 48px; background: #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+          #amapMapWrap .close-map-btn { padding: 8px 26px; border: none; border-radius: 18px; background: #ef4444; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.10); transition: background 0.18s, box-shadow 0.18s; margin-left: 18px; white-space: nowrap; position: static; left: auto; top: auto; z-index: auto; }
+          #amapMapWrap .close-map-btn:hover { background: #b91c1c; box-shadow: 0 4px 16px #ef444455; }
+          @media (max-width: 600px) { #amapMapWrap .search-bar { min-width: 0; max-width: 95vw; width: 350px; left: 2.5vw; right: 2.5vw; margin: 0 auto; padding: 0 4px; } #amapMapWrap .close-map-btn { padding: 7px 12px; font-size: 15px; margin-left: 6px; } }
+        </style>
+        <div id="map" style="width:100%;height:100%;min-height:100%;position:relative;">
+          <div class="search-bar">
+            <span class="search-icon">
+              <img src="https://webapi.amap.com/theme/v1.3/markers/n/loc.png" alt="定位" style="width:24px;height:24px;" />
+            </span>
+            <input type="text" id="searchInput" placeholder="搜索位置" autocomplete="off" />
+            <button class="search-btn" id="searchBtn" tabindex="-1">
+              <svg style="pointer-events: none;" viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="11" cy="11" r="7" stroke="#888" stroke-width="2"/><line x1="16.2" y1="16.2" x2="21" y2="21" stroke="#888" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <button id="closeMapBtn" class="close-map-btn" type="button">关闭</button>
+          </div>
+          <ul id="searchResult" style="display:none;"></ul>
+          <div id="myLocationBtn">
+            <svg width="28" height="28" viewBox="0 0 1024 1024"><circle cx="512" cy="512" r="128" fill="#1677ff"/><circle cx="512" cy="512" r="64" fill="#fff"/><path d="M512 64v96m0 704v96m448-448h-96M160 512H64m751.36-287.36l-67.88 67.88M272.52 751.36l-67.88 67.88m0-607.12l67.88 67.88m607.12 0l-67.88 67.88" stroke="#1677ff" stroke-width="48" fill="none"/></svg>
+          </div>
+        </div>
+        <div id="addressBar" style="background:#f7f7fa;padding:8px 18px;font-size:15px;color:#333;">请点击地图或搜索</div>
+      </div>
+    </div>
+
     <script src="../db/db-database.js"></script>
     <script src="adm-admin.js"></script>
+    <script>
+// 1. 点击详细地址输入框弹出地图
+var addrInput = document.getElementById('restaurantAddress');
+if(addrInput){
+  addrInput.onclick = function() {
+    document.getElementById('mapModal').style.display = 'flex';
+  };
+}
+// 2. 关闭地图弹窗
+var closeBtn = document.getElementById('closeMapModal');
+if(closeBtn){
+  closeBtn.onclick = function() {
+    document.getElementById('mapModal').style.display = 'none';
+  };
+}
+// 3. 接收地图页面postMessage回传的地址
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'amap-location' && e.data.address) {
+    document.getElementById('restaurantAddress').value = e.data.address;
+    document.getElementById('mapModal').style.display = 'none';
+  }
+});
+</script>
 </body>
 </html> 

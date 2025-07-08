@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             const addressInput = document.getElementById('restaurantAddress');
             if (addressInput) {
                 addressInput.addEventListener('click', function() {
-                    window.open('amap-location.html', '_blank', 'width=600,height=500');
+                    showMapModal();
                 });
             }
             
@@ -547,6 +547,206 @@ document.addEventListener('DOMContentLoaded', async function() {
                 alert('获取菜品信息失败，请重试');
             }
         };
+
+        // 高德地图POI搜索与定位弹窗逻辑
+        window._AMapSecurityConfig = { securityJsCode: '88131e5e8d6707e00b465f86aae89504' };
+        function showMapModal() {
+          document.getElementById('mapModal').style.display = 'flex';
+          if (!window._amapInited) {
+            var script = document.createElement('script');
+            script.src = 'https://webapi.amap.com/maps?v=2.0&key=c424814a68db2d5a6f11750e81458a69';
+            script.onload = initAmapModal;
+            document.body.appendChild(script);
+            window._amapInited = true;
+          }
+        }
+        function hideMapModal() {
+          document.getElementById('mapModal').style.display = 'none';
+        }
+        function initAmapModal() {
+          var map = new AMap.Map('map', { zoom: 13, center: [116.397428, 39.90923] });
+          var marker = new AMap.Marker({ map: map });
+          var infoWindow = null;
+          var selectedAddress = '';
+          document.getElementById('myLocationBtn').onclick = function() { locateMe(); };
+          function locateMe() {
+            AMap.plugin('AMap.Geolocation', function() {
+              var geolocation = new AMap.Geolocation({ enableHighAccuracy: true, timeout: 10000 });
+              geolocation.getCurrentPosition(function(status, result) {
+                if (status === 'complete' && result.position) {
+                  var lnglat = [result.position.lng, result.position.lat];
+                  map.setCenter(lnglat);
+                  marker.setPosition(lnglat);
+                  if (infoWindow) infoWindow.close();
+                  infoWindow = new AMap.InfoWindow({ content: '已定位到当前位置', offset: new AMap.Pixel(0, -30) });
+                  infoWindow.open(map, lnglat);
+                } else {
+                  alert('定位失败，请检查浏览器权限或网络');
+                }
+              });
+            });
+          }
+          function setAddressAndClose(addr) {
+            var addrInput = document.getElementById('restaurantAddress');
+            if(addrInput) addrInput.value = addr;
+            hideMapModal();
+          }
+          AMap.plugin(['AMap.Geocoder', 'AMap.DistrictSearch', 'AMap.PlaceSearch'], function() {
+            window.geocoder = new AMap.Geocoder();
+            var placeSearch = new AMap.PlaceSearch({ map: map });
+            window.infoWindow = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -30) });
+            AMap.plugin('AMap.Autocomplete', function() {
+              var autoComplete = new AMap.Autocomplete({ input: 'searchInput' });
+              var searchInput = document.getElementById('searchInput');
+              var searchResult = document.getElementById('searchResult');
+              var activeIndex = -1;
+              var tips = [];
+              searchInput.oninput = function () {
+                var inputVal = this.value.trim();
+                searchResult.innerHTML = '';
+                activeIndex = -1;
+                tips = [];
+                if (!inputVal) { searchResult.style.display = 'none'; return; }
+                autoComplete.search(inputVal, function (status, data) {
+                  if (status === 'complete' && data.tips.length) {
+                    searchResult.innerHTML = '';
+                    tips = data.tips.filter(function(item){ return item.name; });
+                    tips.forEach(function(item, idx) {
+                      var li = document.createElement('li');
+                      li.innerText = item.name + (item.district ? '（' + item.district + '）' : '');
+                      li.style.padding = '6px 12px';
+                      li.style.cursor = 'pointer';
+                      li.onmouseenter = function() { setActive(idx); };
+                      li.onmouseleave = function() { setActive(-1); };
+                      li.onclick = function () {
+                        searchInput.value = item.name;
+                        searchResult.style.display = 'none';
+                        doPlaceSearch(item.name);
+                      };
+                      searchResult.appendChild(li);
+                    });
+                    searchResult.style.display = 'block';
+                  } else {
+                    searchResult.style.display = 'none';
+                  }
+                });
+              };
+              searchInput.onkeydown = function(e) {
+                if (searchResult.style.display === 'block' && tips.length) {
+                  if (e.key === 'ArrowDown') {
+                    activeIndex = (activeIndex + 1) % tips.length;
+                    setActive(activeIndex);
+                    e.preventDefault();
+                  } else if (e.key === 'ArrowUp') {
+                    activeIndex = (activeIndex - 1 + tips.length) % tips.length;
+                    setActive(activeIndex);
+                    e.preventDefault();
+                  } else if (e.key === 'Enter' && activeIndex >= 0) {
+                    searchInput.value = tips[activeIndex].name;
+                    searchResult.style.display = 'none';
+                    doPlaceSearch(tips[activeIndex].name);
+                    e.preventDefault();
+                  }
+                }
+              };
+              searchInput.onblur = function() { setTimeout(function(){ searchResult.style.display = 'none'; }, 200); };
+              function setActive(idx) {
+                Array.from(searchResult.children).forEach(function(li, i) {
+                  li.style.background = (i === idx) ? '#e6f7ff' : '';
+                });
+                activeIndex = idx;
+              }
+            });
+            document.getElementById('searchBtn').onclick = function() {
+              var keyword = document.getElementById('searchInput').value.trim();
+              if (!keyword) return;
+              var district = new AMap.DistrictSearch({ subdistrict: 0, extensions: 'all', level: 'district' });
+              district.search(keyword, function(status, result) {
+                if (status === 'complete' && result.districtList && result.districtList.length && result.districtList[0].boundaries) {
+                  if (window._districtPolygons) { window._districtPolygons.forEach(function(p) { map.remove(p); }); }
+                  window._districtPolygons = [];
+                  var bounds = result.districtList[0].boundaries;
+                  for (var i = 0; i < bounds.length; i++) {
+                    var polygon = new AMap.Polygon({ map: map, path: bounds[i], strokeColor: '#FF33FF', strokeWeight: 2, fillColor: '#1791fc', fillOpacity: 0.1 });
+                    window._districtPolygons.push(polygon);
+                  }
+                  map.setFitView(window._districtPolygons);
+                  document.getElementById('addressBar').textContent = '已为您高亮显示 "' + keyword + '" 的行政区划';
+                } else {
+                  doPlaceSearch(keyword);
+                }
+              });
+            };
+            map.on('click', function(e) {
+              marker.setPosition(e.lnglat);
+              window.geocoder.getAddress(e.lnglat, function(status, result) {
+                if (status === 'complete' && result.regeocode) {
+                  var addr = result.regeocode.formattedAddress;
+                  document.getElementById('addressBar').textContent = '点击位置地址：' + addr;
+                  // 每次都新建InfoWindow，避免被旧对象干扰
+                  var infoHtml = '<div style="font-size:15px;max-width:220px;line-height:1.5;">' + addr + '<br>' + '<button id="confirmAddrBtn" data-address="' + (addr || '') + '" style="margin-top:8px;padding:4px 16px;background:#1677ff;color:#fff;border:none;border-radius:4px;cursor:pointer;">确认</button>' + '</div>';
+                  var tempInfoWindow = new AMap.InfoWindow({ content: infoHtml, offset: new AMap.Pixel(0, -30) });
+                  tempInfoWindow.open(map, e.lnglat);
+                  setTimeout(function() {
+                    var btn = document.getElementById('confirmAddrBtn');
+                    if (btn) {
+                      btn.onclick = function() {
+                        var addr = btn.getAttribute('data-address');
+                        if(addr) setAddressAndClose(addr);
+                        tempInfoWindow.close();
+                      };
+                    }
+                  }, 300);
+                } else {
+                  document.getElementById('addressBar').textContent = '无法获取该点地址';
+                }
+              });
+            });
+          });
+          function doPlaceSearch(keyword) {
+            AMap.plugin('AMap.PlaceSearch', function() {
+              var placeSearch = new AMap.PlaceSearch({ pageSize: 10, pageIndex: 1, city: '全国', map: null });
+              placeSearch.search(keyword, function(status, result) {
+                if (status === 'complete' && result.poiList && result.poiList.pois.length) {
+                  var firstPoi = result.poiList.pois[0];
+                  if (firstPoi && firstPoi.location) {
+                    map.setCenter(firstPoi.location);
+                    marker.setPosition(firstPoi.location);
+                    if (window.geocoder) {
+                      window.geocoder.getAddress(firstPoi.location, function(status, result) {
+                        var addr = '';
+                        if (status === 'complete' && result.regeocode) {
+                          addr = result.regeocode.formattedAddress;
+                          selectedAddress = addr;
+                        } else {
+                          addr = '';
+                          selectedAddress = '';
+                        }
+                        var infoHtml = '<div style="font-size:15px;max-width:220px;line-height:1.5;">' + (firstPoi.name ? '<b>' + firstPoi.name + '</b><br>' : '') + (addr ? addr + '<br>' : '') + '<button id="confirmAddrBtn" data-address="' + (addr || '') + '" style="margin-top:8px;padding:4px 16px;background:#1677ff;color:#fff;border:none;border-radius:4px;cursor:pointer;">确定</button>' + '</div>';
+                        if (window.infoWindow) window.infoWindow.close();
+                        window.infoWindow = new AMap.InfoWindow({ content: infoHtml, offset: new AMap.Pixel(0, -30) });
+                        window.infoWindow.open(map, firstPoi.location);
+                        setTimeout(function() {
+                          var btn = document.getElementById('confirmAddrBtn');
+                          if (btn) {
+                            btn.onclick = function() {
+                              var addr = btn.getAttribute('data-address');
+                              if(addr) setAddressAndClose(addr);
+                              window.infoWindow.close();
+                            };
+                          }
+                        }, 300);
+                      });
+                    }
+                  }
+                } else {
+                  alert('未找到相关地点');
+                }
+              });
+            });
+          }
+          document.getElementById('closeMapBtn').onclick = hideMapModal;
+        }
     } catch (error) {
         console.error('后台管理系统初始化失败:', error);
         alert('后台管理系统初始化失败，请刷新页面重试');
