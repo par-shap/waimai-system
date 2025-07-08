@@ -42,6 +42,7 @@
       outline: none;
       font-size: 16px;
       flex: 1;
+      min-width: 0;
       background: transparent;
       padding: 0 8px;
       color: #333;
@@ -91,6 +92,45 @@
     #searchResult li { padding: 10px 22px; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
     #searchResult li:hover, #searchResult li.active { background: #f2f3f5; color: #1677ff; }
     #myLocationBtn { position: absolute; right: 30px; bottom: 30px; z-index: 1000; width: 48px; height: 48px; background: #fff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .close-map-btn {
+      padding: 8px 26px;
+      border: none;
+      border-radius: 18px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      transition: background 0.18s, box-shadow 0.18s;
+      margin-left: 18px;
+      white-space: nowrap;
+      /* 移除绝对定位相关属性 */
+      position: static;
+      left: auto;
+      top: auto;
+      z-index: auto;
+    }
+    .close-map-btn:hover {
+      background: #b91c1c;
+      box-shadow: 0 4px 16px #ef444455;
+    }
+    @media (max-width: 600px) {
+      .search-bar {
+        min-width: 0;
+        max-width: 95vw;
+        width: 350px;
+        left: 2.5vw;
+        right: 2.5vw;
+        margin: 0 auto;
+        padding: 0 4px;
+      }
+      .close-map-btn {
+        padding: 7px 12px;
+        font-size: 15px;
+        margin-left: 6px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -104,6 +144,7 @@
         <!-- 极简扁平放大镜图标 -->
         <svg style="pointer-events: none;" viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="11" cy="11" r="7" stroke="#888" stroke-width="2"/><line x1="16.2" y1="16.2" x2="21" y2="21" stroke="#888" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
+      <button id="closeMapBtn" class="close-map-btn" onclick="closeMap()">关闭</button>
     </div>
     <ul id="searchResult" style="display:none;"></ul>
     <!-- 我的位置小图标 -->
@@ -113,6 +154,13 @@
   </div>
   <div id="addressBar">请点击地图或搜索</div>
   <script>
+    function closeMap() {
+      if (window.opener) {
+        window.close();
+      } else {
+        history.back();
+      }
+    }
     var map = new AMap.Map('map', {
       zoom: 13,
       center: [116.397428, 39.90923]
@@ -158,7 +206,7 @@
 
       // 输入联想功能
       AMap.plugin('AMap.Autocomplete', function() {
-        var autoComplete = new AMap.Autocomplete();
+        var autoComplete = new AMap.Autocomplete({ input: 'searchInput' });
         var searchInput = document.getElementById('searchInput');
         var searchResult = document.getElementById('searchResult');
         var activeIndex = -1;
@@ -273,9 +321,33 @@
         marker.setPosition(e.lnglat);
         geocoder.getAddress(e.lnglat, function(status, result) {
           if (status === 'complete' && result.regeocode) {
-            document.getElementById('addressBar').textContent = '点击位置地址：' + result.regeocode.formattedAddress;
-            infoWindow.setContent(result.regeocode.formattedAddress);
+            var addr = result.regeocode.formattedAddress;
+            document.getElementById('addressBar').textContent = '点击位置地址：' + addr;
+            // 弹窗内容加确认按钮
+            var infoHtml = '<div style="font-size:15px;max-width:220px;line-height:1.5;">' +
+              addr + '<br>' +
+              '<button id="confirmAddrBtn" data-address="' + (addr || '') + '" style="margin-top:8px;padding:4px 16px;background:#1677ff;color:#fff;border:none;border-radius:4px;cursor:pointer;">确认</button>' +
+              '</div>';
+            infoWindow.setContent(infoHtml);
             infoWindow.open(map, e.lnglat);
+            setTimeout(function() {
+              var btn = document.getElementById('confirmAddrBtn');
+              if (btn) {
+                btn.onclick = function() {
+                  var addr = btn.getAttribute('data-address');
+                  if(addr) {
+                    document.getElementById('addressBar').textContent = addr;
+                    // 通知父页面自动填写表单
+                    if (window.opener) {
+                      window.opener.postMessage({ type: 'amap-location', address: addr }, '*');
+                    } else if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({ type: 'amap-location', address: addr }, '*');
+                    }
+                  }
+                  infoWindow.close();
+                };
+              }
+            }, 300);
           } else {
             document.getElementById('addressBar').textContent = '无法获取该点地址';
           }
@@ -376,6 +448,19 @@
         });
       });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var closeBtn = document.getElementById('closeMapBtn');
+      if (closeBtn) {
+        closeBtn.onclick = function() {
+          if (window.opener) {
+            window.close();
+          } else {
+            history.back();
+          }
+        };
+      }
+    });
   </script>
 </body>
 </html> 
